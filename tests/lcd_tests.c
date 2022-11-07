@@ -11,7 +11,6 @@
 #include "lcd_ssd1283a.h"
 
 #include "lcd_basic_font.h"
-#include "thermometer_red.h"
 
 #define LCD_TAG             "LCD"
 
@@ -51,15 +50,9 @@ void lcd_test(void)
         return;
     }
 
-    if (!lcd__DrawRect(lcd, SSD1283A_WIDTH / 2, SSD1283A_HEIGHT / 2, SSD1283A_WIDTH / 4, SSD1283A_HEIGHT / 4, RGB565_WHITE))
+    if (!lcd__DrawRect(lcd, SSD1283A_WIDTH / 2, SSD1283A_HEIGHT / 2, SSD1283A_WIDTH / 4, SSD1283A_HEIGHT / 4, RGB565_RED))
     {
         ESP_LOGI(LCD_TAG, "Drawing rectangle failed.");
-        return;
-    }
-
-    if (!lcd__DrawImage(lcd, 64, 64, &LCD_IMAGE_THERMOMETER_RED))
-    {
-        ESP_LOGI(LCD_TAG, "Drawing image failed.");
         return;
     }
     
