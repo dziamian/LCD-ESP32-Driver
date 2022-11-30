@@ -56,7 +56,7 @@ void lcd_test(void)
         return;
     }
     
-    if (!lcd__DrawText(lcd, 120, 10, "Temp: 25.6025 C", -2, &LCD_BASIC_FONT, RGB565_BLACK, RGB565_WHITE))
+    if (!lcd__DrawText(lcd, 120, 10, "Temp: 25.6025 C", -2, 0, &LCD_BASIC_FONT, RGB565_BLACK, RGB565_WHITE))
     {
         ESP_LOGI(LCD_TAG, "Drawing text failed.");
         return;

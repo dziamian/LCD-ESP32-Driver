@@ -63,6 +63,16 @@ bool spi_init(int miso, int mosi, int sclk, int wp, int hd, int cs, int maxTrans
     return true;
 }
 
+bool spi_free(spi_host_device_t host)
+{
+    if (ESP_OK != spi_bus_free(host))
+    {
+        return false;
+    }
+
+    return true;
+}
+
 bool spi_send_cmd(spi_device_handle_t spi, const int dcGpio, const uint8_t cmd)
 {
     spi_transaction_t t;

@@ -29,8 +29,8 @@ struct LCD_controller_t
     bool (*DisplayOff)(LCD_handle_t base);
     bool (*DrawRect)(LCD_handle_t base, const uint16_t x, const uint16_t y, const uint16_t width, const uint16_t height, const uint16_t color);
     bool (*DrawImage)(LCD_handle_t base, const uint16_t x, const uint16_t y, const LCD_image_t *image);
-    bool (*DrawText)(LCD_handle_t base, uint16_t x, const uint16_t y, const char *text, 
-        const int16_t spacing, const LCD_font_t *font, const uint16_t fontColor, const uint16_t bgrColor);
+    bool (*DrawText)(LCD_handle_t base, uint16_t x, uint16_t y, const char *text, 
+        const int16_t letterSpacing, const int16_t lineSpacing, const LCD_font_t *font, const uint16_t fontColor, const uint16_t bgrColor);
     bool (*ClearScreen)(LCD_handle_t base, const uint16_t color);
     void (*Destroy)(LCD_handle_t base);
 };

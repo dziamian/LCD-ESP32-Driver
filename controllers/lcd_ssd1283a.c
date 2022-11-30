@@ -19,8 +19,8 @@ static bool lcd_ssd1283a__Init(LCD_handle_t base);
 static bool lcd_ssd1283a__DisplayOn(LCD_handle_t base);
 static bool lcd_ssd1283a__DrawRect(LCD_handle_t base, const uint16_t x, const uint16_t y, const uint16_t width, const uint16_t height, const uint16_t color);
 static bool lcd_ssd1283a__DrawImage(LCD_handle_t base, const uint16_t x, const uint16_t y, const LCD_image_t *image);
-static bool lcd_ssd1283a__DrawText(LCD_handle_t base, uint16_t x, const uint16_t y, const char *text, 
-        const int16_t spacing, const LCD_font_t *font, const uint16_t fontColor, const uint16_t bgrColor);
+static bool lcd_ssd1283a__DrawText(LCD_handle_t base, uint16_t x, uint16_t y, const char *text, 
+        const int16_t letterSpacing, const int16_t lineSpacing, const LCD_font_t *font, const uint16_t fontColor, const uint16_t bgrColor);
 static bool lcd_ssd1283a__ClearScreen(LCD_handle_t base, const uint16_t color);
 
 static LCD_controller_t lcd_ssd1283a =
@@ -153,8 +153,8 @@ static bool lcd_ssd1283a__DrawImage(LCD_handle_t base, const uint16_t x, const u
 
 
 
-static bool lcd_ssd1283a__DrawText(LCD_handle_t base, uint16_t x, const uint16_t y, const char *text, 
-        const int16_t spacing, const LCD_font_t *font, const uint16_t fontColor, const uint16_t bgrColor)
+static bool lcd_ssd1283a__DrawText(LCD_handle_t base, uint16_t x, uint16_t y, const char *text, 
+        const int16_t letterSpacing, const int16_t lineSpacing, const LCD_font_t *font, const uint16_t fontColor, const uint16_t bgrColor)
 {
     if (!text)
     {
@@ -162,14 +162,22 @@ static bool lcd_ssd1283a__DrawText(LCD_handle_t base, uint16_t x, const uint16_t
     }
 
     size_t textLength = strlen(text);
+    uint16_t startX = x;
     for (size_t textIndex = 0; textIndex < textLength; ++textIndex)
     {
+        if ('\n' == text[textIndex])
+        {
+            x = startX;
+            y += font->height + lineSpacing;
+            continue;
+        }
+
         if (!lcd_ssd1283a_draw_char(base, x, y, text[textIndex], font, fontColor, bgrColor))
         {
             return false;
         }
 
-        x -= (font->width + spacing);
+        x -= (font->width + letterSpacing);
     }
 
     return true;

@@ -50,15 +50,15 @@ bool lcd__DrawImage(LCD_handle_t device, const uint16_t x, const uint16_t y, con
     return device->controller->DrawImage(device, x, y, image);
 }
 
-bool lcd__DrawText(LCD_handle_t device, uint16_t x, const uint16_t y, const char *text, 
-        const int16_t spacing, const LCD_font_t *font, const uint16_t fontColor, const uint16_t bgrColor)
+bool lcd__DrawText(LCD_handle_t device, uint16_t x, uint16_t y, const char *text, 
+        const int16_t letterSpacing, const int16_t lineSpacing, const LCD_font_t *font, const uint16_t fontColor, const uint16_t bgrColor)
 {
     if (!device || !device->controller || !device->controller->DrawText)
     {
         return false;
     }
 
-    return device->controller->DrawText(device, x, y, text, spacing, font, fontColor, bgrColor);
+    return device->controller->DrawText(device, x, y, text, letterSpacing, lineSpacing, font, fontColor, bgrColor);
 }
 
 bool lcd__ClearScreen(LCD_handle_t device, const uint16_t color)
