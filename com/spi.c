@@ -4,7 +4,6 @@
 
 #include "driver/gpio.h"
 
-#define SPI_TRANS_INIT_VALUE  0
 #define SPI_1BYTE_SIZE        8
 #define SPI_2BYTES_SIZE       16
 
@@ -23,12 +22,12 @@ struct spi_user_t
 
 static void spi_pre_transfer_dc_callback(spi_transaction_t *t);
 
-bool spi_init(int miso, int mosi, int sclk, int wp, int hd, int cs, int maxTransferSize, 
-    int queueSize, int clockSpeedHz, spi_host_device_t host, spi_dma_chan_t dma, spi_device_handle_t *spi)
+spi_error_t spi_init(const int miso, const int mosi, const int sclk, const int wp, const int hd, const int cs, const int maxTransferSize, 
+    const int queueSize, const int clockSpeedHz, const spi_host_device_t host, const spi_dma_chan_t dma, spi_device_handle_t * const spi)
 {
     if (!spi)
     {
-        return false;
+        return SPI_INV_ARG;
     }
 
     spi_bus_config_t busConfig =
@@ -52,31 +51,31 @@ bool spi_init(int miso, int mosi, int sclk, int wp, int hd, int cs, int maxTrans
 
     if (ESP_OK != spi_bus_initialize(host, &busConfig, dma))
     {
-        return false;
+        return SPI_CONF_FAIL;
     }
 
     if (ESP_OK != spi_bus_add_device(host, &deviceConfig, spi))
     {
-        return false;
+        return SPI_CONF_FAIL;
     }
 
-    return true;
+    return SPI_OK;
 }
 
-bool spi_free(spi_host_device_t host)
+spi_error_t spi_free(spi_host_device_t host)
 {
     if (ESP_OK != spi_bus_free(host))
     {
-        return false;
+        return SPI_OP_FAIL;
     }
 
-    return true;
+    return SPI_OK;
 }
 
-bool spi_send_cmd(spi_device_handle_t spi, const int dcGpio, const uint8_t cmd)
+spi_error_t spi_send_cmd(spi_device_handle_t spi, const int dcGpio, const uint8_t cmd)
 {
     spi_transaction_t t;
-    memset(&t, SPI_TRANS_INIT_VALUE, sizeof(t));
+    memset(&t, 0, sizeof(t));
     t.length = SPI_1BYTE_SIZE;
     t.tx_buffer = &cmd;
     spi_user_t user = {
@@ -84,13 +83,13 @@ bool spi_send_cmd(spi_device_handle_t spi, const int dcGpio, const uint8_t cmd)
         .dc_value = SPI_COMMAND
     };
     t.user = (void *) &user;
-    return ESP_OK == spi_device_polling_transmit(spi, &t);
+    return (ESP_OK == spi_device_polling_transmit(spi, &t)) ? SPI_OK : SPI_OP_FAIL;
 }
 
-bool spi_send_single_bytes(spi_device_handle_t spi, const int dcGpio, const uint8_t *data, const size_t dataSize)
+spi_error_t spi_send_single_bytes(spi_device_handle_t spi, const int dcGpio, const uint8_t *data, const size_t dataSize)
 {
     spi_transaction_t t;
-    memset(&t, SPI_TRANS_INIT_VALUE, sizeof(t));
+    memset(&t, 0, sizeof(t));
     t.length = dataSize * SPI_1BYTE_SIZE;
     t.tx_buffer = data;
     spi_user_t user = {
@@ -98,14 +97,14 @@ bool spi_send_single_bytes(spi_device_handle_t spi, const int dcGpio, const uint
         .dc_value = SPI_DATA
     };
     t.user = (void *) &user;
-    return ESP_OK == spi_device_polling_transmit(spi, &t);
+    return (ESP_OK == spi_device_polling_transmit(spi, &t)) ? SPI_OK : SPI_OP_FAIL;
 }
 
-bool spi_send_two_bytes(spi_device_handle_t spi, const int dcGpio, uint16_t data)
+spi_error_t spi_send_two_bytes(spi_device_handle_t spi, const int dcGpio, uint16_t data)
 {
     data = SPI_SWAP_DATA_TX(data, SPI_2BYTES_SIZE);
     spi_transaction_t t;
-    memset(&t, SPI_TRANS_INIT_VALUE, sizeof(t));
+    memset(&t, 0, sizeof(t));
     t.length = SPI_2BYTES_SIZE;
     t.tx_buffer = &data;
     spi_user_t user = {
@@ -113,7 +112,7 @@ bool spi_send_two_bytes(spi_device_handle_t spi, const int dcGpio, uint16_t data
         .dc_value = SPI_DATA
     };
     t.user = (void *) &user;
-    return ESP_OK == spi_device_polling_transmit(spi, &t);
+    return (ESP_OK == spi_device_polling_transmit(spi, &t)) ? SPI_OK : SPI_OP_FAIL;
 }
 
 static void spi_pre_transfer_dc_callback(spi_transaction_t *t)

@@ -4,6 +4,7 @@
 
 #include "driver/gpio.h"
 
+#include "lcd_error_codes.h"
 #include "lcd_ssd1283a_registers.h"
 
 #define SSD1283A_HIGH_LEVEL             1
@@ -14,14 +15,14 @@
 
 #define SSD1283A_RESET_US               15
 
-static void lcd_ssd1283a__Destroy(LCD_handle_t self);
-static bool lcd_ssd1283a__Init(LCD_handle_t base);
-static bool lcd_ssd1283a__DisplayOn(LCD_handle_t base);
-static bool lcd_ssd1283a__DrawRect(LCD_handle_t base, const uint16_t x, const uint16_t y, const uint16_t width, const uint16_t height, const uint16_t color);
-static bool lcd_ssd1283a__DrawImage(LCD_handle_t base, const uint16_t x, const uint16_t y, const LCD_image_t *image);
-static bool lcd_ssd1283a__DrawText(LCD_handle_t base, uint16_t x, uint16_t y, const char *text, 
+static LCD_error_t lcd_ssd1283a__Destroy(LCD_handle_t self);
+static LCD_error_t lcd_ssd1283a__Init(LCD_handle_t base);
+static LCD_error_t lcd_ssd1283a__DisplayOn(LCD_handle_t base);
+static LCD_error_t lcd_ssd1283a__DrawRect(LCD_handle_t base, const uint16_t x, const uint16_t y, const uint16_t width, const uint16_t height, const uint16_t color);
+static LCD_error_t lcd_ssd1283a__DrawImage(LCD_handle_t base, const uint16_t x, const uint16_t y, const LCD_image_t *image);
+static LCD_error_t lcd_ssd1283a__DrawText(LCD_handle_t base, uint16_t x, uint16_t y, const char *text, 
         const int16_t letterSpacing, const int16_t lineSpacing, const LCD_font_t *font, const uint16_t fontColor, const uint16_t bgrColor);
-static bool lcd_ssd1283a__ClearScreen(LCD_handle_t base, const uint16_t color);
+static LCD_error_t lcd_ssd1283a__ClearScreen(LCD_handle_t base, const uint16_t color);
 
 static LCD_controller_t lcd_ssd1283a =
 {
@@ -51,12 +52,18 @@ static const uint8_t initCommands[][SSD1283A_COMMAND_HANDLE_SIZE] =
     {SSD1283A_DRIVER_AC_CTRL, SSD1283A_DRIVER_AC_CTRL_INIT_MSB, SSD1283A_DRIVER_AC_CTRL_INIT_LSB},
 };
 
-static bool lcd_ssd1283a_draw_char(LCD_handle_t base, const uint8_t x, const uint8_t y, const char character, const LCD_font_t *font, const uint16_t fontColor, const uint16_t bgrColor);
-static bool lcd_ssd1283a_init_window(LCD_handle_t base, const uint8_t x, const uint8_t y, const uint8_t width, const uint8_t height);
+static LCD_error_t lcd_ssd1283a_draw_char(LCD_handle_t base, const uint8_t x, const uint8_t y, const char character, const LCD_font_t *font, const uint16_t fontColor, const uint16_t bgrColor);
+static LCD_error_t lcd_ssd1283a_init_window(LCD_handle_t base, const uint8_t x, const uint8_t y, const uint8_t width, const uint8_t height);
 
-LCD_handle_t lcd_ssd1283a_spi__Create(spi_device_handle_t spi, int dc, int reset)
+LCD_handle_t lcd_ssd1283a_spi__Create(spi_device_handle_t spi, const int dc, const int reset)
 {
-    LCD_spi_handle_t self   = malloc(sizeof (LCD_spi_t));
+    LCD_spi_handle_t self   = malloc(sizeof(LCD_spi_t));
+    
+    if (!self)
+    {
+        return NULL;
+    }
+    
     self->base.width        = SSD1283A_WIDTH;
     self->base.height       = SSD1283A_HEIGHT;
     self->base.com          = lcd_spi__GetCom();
@@ -67,12 +74,14 @@ LCD_handle_t lcd_ssd1283a_spi__Create(spi_device_handle_t spi, int dc, int reset
     return (LCD_handle_t) self;
 }
 
-static void lcd_ssd1283a__Destroy(LCD_handle_t self)
+static LCD_error_t lcd_ssd1283a__Destroy(LCD_handle_t self)
 {
     free(self);
+    
+    return LCD_OK;
 }
 
-static bool lcd_ssd1283a__Init(LCD_handle_t base)
+static LCD_error_t lcd_ssd1283a__Init(LCD_handle_t base)
 {
     LCD_spi_handle_t self = (LCD_spi_handle_t) base;
 
@@ -86,55 +95,87 @@ static bool lcd_ssd1283a__Init(LCD_handle_t base)
     gpio_set_level(self->resetGpio, SSD1283A_HIGH_LEVEL);
     ets_delay_us(SSD1283A_RESET_US);
 
-    base->controller->DisplayOn(base);
+    LCD_error_t status = base->controller->DisplayOn(base);
+    if (LCD_OK != status)
+    {
+        return status;
+    }
 
     size_t initCommandsSize = sizeof(initCommands) / sizeof(initCommands[0]);
     for (size_t i = 0; i < initCommandsSize; ++i)
     {
-        base->com->write_cmd(base, initCommands[i][0]);
-        base->com->write_single_bytes(base, &initCommands[i][1], 2);
+        if (!base->com->write_cmd(base, initCommands[i][0]))
+        {
+            return LCD_COM_FAIL;
+        }
+        if (!base->com->write_single_bytes(base, &initCommands[i][1], 2))
+        {
+            return LCD_COM_FAIL;
+        }
     }
 
-    return true;
+    return LCD_OK;
 }
 
-static bool lcd_ssd1283a__DisplayOn(LCD_handle_t base)
+static LCD_error_t lcd_ssd1283a__DisplayOn(LCD_handle_t base)
 {
     size_t displayOnCommandsSize = sizeof(displayOnCommands) / sizeof(displayOnCommands[0]);
     for (size_t i = 0; i < displayOnCommandsSize; ++i)
     {
-        base->com->write_cmd(base, displayOnCommands[i][0]);
-        base->com->write_single_bytes(base, &displayOnCommands[i][1], 2);
+        if (!base->com->write_cmd(base, displayOnCommands[i][0]))
+        {
+            return LCD_COM_FAIL;
+        }
+        if (!base->com->write_single_bytes(base, &displayOnCommands[i][1], 2))
+        {
+            return LCD_COM_FAIL;
+        }
     }
 
-    return true;
+    return LCD_OK;
 }
 
-static bool lcd_ssd1283a__DrawRect(LCD_handle_t base, const uint16_t x, const uint16_t y, const uint16_t width, const uint16_t height, const uint16_t color)
+static LCD_error_t lcd_ssd1283a__DrawRect(LCD_handle_t base, const uint16_t x, const uint16_t y, const uint16_t width, const uint16_t height, const uint16_t color)
 {
-    if (!lcd_ssd1283a_init_window(base, x, y, width, height))
+    LCD_error_t status = lcd_ssd1283a_init_window(base, x, y, width, height);
+    if (LCD_OK != status)
     {
-        return false;
+        return status;
     }
 
-    base->com->write_cmd(base, SSD1283A_RAM_WRITE);
+    if (!base->com->write_cmd(base, SSD1283A_RAM_WRITE))
+    {
+        return LCD_COM_FAIL;
+    }
     uint16_t rectSize = width * height;
     for (int i = 0; i < rectSize; ++i)
     {
-        base->com->write_two_bytes(base, color);
+        if (!base->com->write_two_bytes(base, color))
+        {
+            return LCD_COM_FAIL;
+        }
     }
 
-    return true;
+    return LCD_OK;
 }
 
-static bool lcd_ssd1283a__DrawImage(LCD_handle_t base, const uint16_t x, const uint16_t y, const LCD_image_t *image)
+static LCD_error_t lcd_ssd1283a__DrawImage(LCD_handle_t base, const uint16_t x, const uint16_t y, const LCD_image_t *image)
 {
-    if (!lcd_ssd1283a_init_window(base, x, y, image->width, image->height))
+    if (!image)
     {
-        return false;
+        return LCD_INV_ARG;
     }
 
-    base->com->write_cmd(base, SSD1283A_RAM_WRITE);
+    LCD_error_t status = lcd_ssd1283a_init_window(base, x, y, image->width, image->height);
+    if (LCD_OK != status)
+    {
+        return status;
+    }
+
+    if (!base->com->write_cmd(base, SSD1283A_RAM_WRITE))
+    {
+        return LCD_COM_FAIL;
+    }
     for (int i = 0; i < image->height; ++i)
     {
         for (int j = 0; j < image->width; ++j)
@@ -142,23 +183,25 @@ static bool lcd_ssd1283a__DrawImage(LCD_handle_t base, const uint16_t x, const u
             uint16_t pixel;
             if (!lcd_image_get_pixel(image, j, i, &pixel))
             {
-                return false;
+                return LCD_INV_RES;
             }
-            base->com->write_two_bytes(base, pixel);
+            if (!base->com->write_two_bytes(base, pixel))
+            {
+                return LCD_COM_FAIL;
+            }
         }
     }
 
-    return true;
+    return LCD_OK;
 }
 
-
-
-static bool lcd_ssd1283a__DrawText(LCD_handle_t base, uint16_t x, uint16_t y, const char *text, 
+static LCD_error_t lcd_ssd1283a__DrawText(LCD_handle_t base, uint16_t x, uint16_t y, const char *text, 
         const int16_t letterSpacing, const int16_t lineSpacing, const LCD_font_t *font, const uint16_t fontColor, const uint16_t bgrColor)
 {
+    LCD_error_t status;
     if (!text)
     {
-        return false;
+        return LCD_INV_ARG;
     }
 
     size_t textLength = strlen(text);
@@ -172,30 +215,35 @@ static bool lcd_ssd1283a__DrawText(LCD_handle_t base, uint16_t x, uint16_t y, co
             continue;
         }
 
-        if (!lcd_ssd1283a_draw_char(base, x, y, text[textIndex], font, fontColor, bgrColor))
+        status = lcd_ssd1283a_draw_char(base, x, y, text[textIndex], font, fontColor, bgrColor);
+        if (LCD_OK != status)
         {
-            return false;
+            return status;
         }
 
         x -= (font->width + letterSpacing);
     }
 
-    return true;
+    return LCD_OK;
 }
 
-static bool lcd_ssd1283a__ClearScreen(LCD_handle_t base, const uint16_t color)
+static LCD_error_t lcd_ssd1283a__ClearScreen(LCD_handle_t base, const uint16_t color)
 {
     return base->controller->DrawRect(base, SSD1283A_INIT_POS_X, SSD1283A_INIT_POS_Y, SSD1283A_WIDTH, SSD1283A_HEIGHT, color);
 }
 
-static bool lcd_ssd1283a_draw_char(LCD_handle_t base, const uint8_t x, const uint8_t y, const char character, const LCD_font_t *font, const uint16_t fontColor, const uint16_t bgrColor)
+static LCD_error_t lcd_ssd1283a_draw_char(LCD_handle_t base, const uint8_t x, const uint8_t y, const char character, const LCD_font_t *font, const uint16_t fontColor, const uint16_t bgrColor)
 {
-    if (!lcd_ssd1283a_init_window(base, x, y, font->width, font->height))
+    LCD_error_t status = lcd_ssd1283a_init_window(base, x, y, font->width, font->height);
+    if (LCD_OK != status)
     {
-        return false;
+        return status;
     }
 
-    base->com->write_cmd(base, SSD1283A_RAM_WRITE);
+    if (!base->com->write_cmd(base, SSD1283A_RAM_WRITE))
+    {
+        return LCD_COM_FAIL;
+    }
     for (int i = 0; i < font->height; ++i)
     {
         for (int j = 0; j < font->width; ++j)
@@ -203,37 +251,58 @@ static bool lcd_ssd1283a_draw_char(LCD_handle_t base, const uint8_t x, const uin
             uint8_t pixel;
             if (!lcd_font_get_pixel(font, character, j, i, &pixel))
             {
-                return false;
+                return LCD_INV_RES;
             }
-            base->com->write_two_bytes(base, pixel ? fontColor : bgrColor);
+            if (!base->com->write_two_bytes(base, pixel ? fontColor : bgrColor))
+            {
+                return LCD_COM_FAIL;
+            }
         }
     }
 
-    return true;
+    return LCD_OK;
 }
 
-static bool lcd_ssd1283a_init_window(LCD_handle_t base, const uint8_t x, const uint8_t y, const uint8_t width, const uint8_t height)
+static LCD_error_t lcd_ssd1283a_init_window(LCD_handle_t base, const uint8_t x, const uint8_t y, const uint8_t width, const uint8_t height)
 {
     if (!width || !height)
     {
-        return false;
+        return LCD_INV_ARG;
     }
 
     uint8_t data[SSD1283A_DATA_SIZE];
     data[0] = x + width - 1;
     data[1] = x;
-    base->com->write_cmd(base, SSD1283A_HORIZONTAL_RAM_SET);
-    base->com->write_single_bytes(base, data, 2);
+    if (!base->com->write_cmd(base, SSD1283A_HORIZONTAL_RAM_SET))
+    {
+        return LCD_COM_FAIL;
+    }
+    if (!base->com->write_single_bytes(base, data, 2))
+    {
+        return LCD_COM_FAIL;
+    }
 
     data[0] = y + height - 1;
     data[1] = y;
-    base->com->write_cmd(base, SSD1283A_VERTICAL_RAM_SET);
-    base->com->write_single_bytes(base, data, 2);
+    if (!base->com->write_cmd(base, SSD1283A_VERTICAL_RAM_SET))
+    {
+        return LCD_COM_FAIL;
+    }
+    if (!base->com->write_single_bytes(base, data, 2))
+    {
+        return LCD_COM_FAIL;
+    }
 
     data[0] = y;
     data[1] = x + width - 1;
-    base->com->write_cmd(base, SSD1283A_RAM_SET);
-    base->com->write_single_bytes(base, data, 2);
+    if (!base->com->write_cmd(base, SSD1283A_RAM_SET))
+    {
+        return LCD_COM_FAIL;
+    }
+    if (!base->com->write_single_bytes(base, data, 2))
+    {
+        return LCD_COM_FAIL;
+    }
 
-    return true;
+    return LCD_OK;
 }

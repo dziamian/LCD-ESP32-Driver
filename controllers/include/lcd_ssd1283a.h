@@ -12,6 +12,6 @@
 #define SSD1283A_WIDTH                  132
 #define SSD1283A_HEIGHT                 132
 
-LCD_handle_t lcd_ssd1283a_spi__Create(spi_device_handle_t spi, int dc, int reset);
+LCD_handle_t lcd_ssd1283a_spi__Create(spi_device_handle_t spi, const int dc, const int reset);
 
 #endif /* LCD_SSD1283A_H */

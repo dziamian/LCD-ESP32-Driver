@@ -3,7 +3,7 @@
 #include "spi.h"
 
 static bool lcd_spi_write_cmd(LCD_handle_t base, const uint8_t cmd);
-static bool lcd_spi_write_single_bytes(LCD_handle_t base, const uint8_t *data, size_t dataSize);
+static bool lcd_spi_write_single_bytes(LCD_handle_t base, const uint8_t *data, const size_t dataSize);
 static bool lcd_spi_write_two_bytes(LCD_handle_t base, const uint16_t data);
 
 static LCD_com_t lcd_spi =
@@ -21,17 +21,17 @@ LCD_com_handle_t lcd_spi__GetCom(void)
 static bool lcd_spi_write_cmd(LCD_handle_t base, const uint8_t cmd)
 {
     LCD_spi_handle_t self = (LCD_spi_handle_t) base;
-    return spi_send_cmd(self->spi, self->dcGpio, cmd);
+    return SPI_OK == spi_send_cmd(self->spi, self->dcGpio, cmd);
 }
 
-static bool lcd_spi_write_single_bytes(LCD_handle_t base, const uint8_t *data, size_t dataSize)
+static bool lcd_spi_write_single_bytes(LCD_handle_t base, const uint8_t *data, const size_t dataSize)
 {
     LCD_spi_handle_t self = (LCD_spi_handle_t) base;
-    return spi_send_single_bytes(self->spi, self->dcGpio, data, dataSize);
+    return SPI_OK == spi_send_single_bytes(self->spi, self->dcGpio, data, dataSize);
 }
 
 static bool lcd_spi_write_two_bytes(LCD_handle_t base, const uint16_t data)
 {
     LCD_spi_handle_t self = (LCD_spi_handle_t) base;
-    return spi_send_two_bytes(self->spi, self->dcGpio, data);
+    return SPI_OK == spi_send_two_bytes(self->spi, self->dcGpio, data);
 }

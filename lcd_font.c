@@ -2,9 +2,9 @@
 
 #define LCD_FONT_FIRST_PIXEL_MASK   0x80
 
-static bool lcd_font_get_line(const LCD_font_t *font, char character, uint16_t lineIndex, uint16_t y, uint8_t *lineOut);
+static bool lcd_font_get_line(const LCD_font_t * const font, const char character, const uint16_t lineIndex, const uint16_t y, uint8_t * const lineOut);
 
-bool lcd_font_character_index(const LCD_font_t *font, char character, uint16_t *indexOut)
+bool lcd_font_character_index(const LCD_font_t * const font, const char character, uint16_t * const indexOut)
 {
     if (!indexOut)
     {
@@ -15,7 +15,7 @@ bool lcd_font_character_index(const LCD_font_t *font, char character, uint16_t *
     return *indexOut < font->characters;
 }
 
-bool lcd_font_get_pixel(const LCD_font_t *font, char character, uint16_t x, uint16_t y, uint8_t *pixelOut)
+bool lcd_font_get_pixel(const LCD_font_t *font, const char character, const uint16_t x, const uint16_t y, uint8_t * const pixelOut)
 {
     if (!pixelOut)
     {
@@ -32,7 +32,7 @@ bool lcd_font_get_pixel(const LCD_font_t *font, char character, uint16_t x, uint
     return true;
 }
 
-static bool lcd_font_get_line(const LCD_font_t *font, char character, uint16_t lineIndex, uint16_t y, uint8_t *lineOut)
+static bool lcd_font_get_line(const LCD_font_t *font, const char character, const uint16_t lineIndex, const uint16_t y, uint8_t * const lineOut)
 {
     if (!lineOut)
     {
