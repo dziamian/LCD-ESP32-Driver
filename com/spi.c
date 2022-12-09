@@ -1,25 +1,56 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2022 Damian Ślusarczyk
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+ * and associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+ * TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
 #include "spi.h"
 
 #include <string.h>
 
 #include "driver/gpio.h"
 
-#define SPI_1BYTE_SIZE        8
-#define SPI_2BYTES_SIZE       16
+#define SPI_1BYTE_SIZE        8     /**< Number of bits in one byte */
+#define SPI_2BYTES_SIZE       16    /**< Number of bits in two bytes */
 
-#define SPI_COMMAND           0
-#define SPI_DATA              1
+#define SPI_COMMAND           0     /**< SPI DC pin value for sending commands */
+#define SPI_DATA              1     /**< SPI DC pin value for sending data */
 
-#define SPI_MODE              0
+#define SPI_MODE              0     /**< SPI mode for communicating with devices */
 
 typedef struct spi_user_t   spi_user_t;
 
+/**
+ * @brief Structure containing information required to communicating properly with the device that uses DC pin.
+ * 
+ */
 struct spi_user_t
 {
-    int dc_gpio;
-    int dc_value;
+    int dc_gpio;    /**< GPIO chosen for DC pin */
+    int dc_value;   /**< GPIO value to be set */
 };
 
+/**
+ * @brief Callback to be called before a SPI transmission is started.
+ * 
+ * Sets DC pin according to the value passed in the user property of the SPI transaction.
+ * 
+ * @param t SPI transaction to transmit
+ */
 static void spi_pre_transfer_dc_callback(spi_transaction_t *t);
 
 spi_error_t spi_init(const int miso, const int mosi, const int sclk, const int wp, const int hd, const int cs, const int maxTransferSize, 

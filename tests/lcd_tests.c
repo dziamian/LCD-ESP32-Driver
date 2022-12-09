@@ -1,3 +1,23 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2022 Damian Ślusarczyk
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+ * and associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+ * TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
 #include "lcd_tests.h"
 
 #include "freertos/FreeRTOS.h"
@@ -30,7 +50,7 @@ void lcd_test(void)
 {
     spi_device_handle_t spi;
     if (SPI_OK != spi_init(LCD_MISO_GPIO, LCD_MOSI_GPIO, LCD_SCLK_GPIO, LCD_WP_GPIO, LCD_HOLD_GPIO, LCD_CS_GPIO, 
-        SSD1283A_MAX_TRANSFER_SIZE, SSD1283A_QUEUE_SIZE, SSD1283A_CLOCK_SPEED, LCD_SPI_HOST, LCD_SPI_DMA, &spi))
+        SSD1283A_SPI_MAX_TRANSFER_SIZE, SSD1283A_SPI_QUEUE_SIZE, SSD1283A_SPI_CLOCK_SPEED, LCD_SPI_HOST, LCD_SPI_DMA, &spi))
     {
         ESP_LOGI(LCD_TAG, "SPI device initialization failed.");
         return;
@@ -60,6 +80,25 @@ void lcd_test(void)
     {
         ESP_LOGI(LCD_TAG, "Drawing text failed.");
         return;
+    }
+
+    while (1)
+    {
+        if (LCD_OK != lcd__DisplayOff(lcd))
+        {
+            ESP_LOGI(LCD_TAG, "Turning off the display failed.");
+            return;
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(5000));
+
+        if (LCD_OK != lcd__DisplayOn(lcd))
+        {
+            ESP_LOGI(LCD_TAG, "Turning on the display failed.");
+            return;
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(5000));
     }
 
     if (LCD_OK != lcd__Destroy(&lcd))
