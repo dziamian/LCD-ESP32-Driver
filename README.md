@@ -53,17 +53,17 @@ Below are some examples of using the driver.
 
  * Creating, initializing and destroying the concrete driver instance (SSD1283A + SPI interface)
 ```c
-#define LCD_SPI_HOST        VSPI_HOST           /**< SPI host selected for LCD display */
-#define LCD_SPI_DMA         SPI_DMA_CH_AUTO     /**< SPI DMA channel selected for LCD display */
+#define LCD_SPI_HOST        VSPI_HOST           // SPI host selected for LCD display 
+#define LCD_SPI_DMA         SPI_DMA_CH_AUTO     // SPI DMA channel selected for LCD display
 
-#define LCD_MISO_GPIO       19                  /**< GPIO for SPI MISO pin selected for LCD display (not required) */
-#define LCD_MOSI_GPIO       23                  /**< GPIO for SPI MOSI pin selected for LCD display */
-#define LCD_SCLK_GPIO       18                  /**< GPIO for SPI SCLK pin selected for LCD display */
-#define LCD_CS_GPIO         5                   /**< GPIO for SPI CS pin selected for LCD display */
-#define LCD_DC_GPIO         22                  /**< GPIO for DC (data/command) pin selected for LCD display */
-#define LCD_RST_GPIO        21                  /**< GPIO for RESET pin selected for LCD display */
-#define LCD_WP_GPIO         -1                  /**< GPIO for WP signal selected for LCD display (not used) */
-#define LCD_HOLD_GPIO       -1                  /**< GPIO for HD signal selected for LCD display (not used) */
+#define LCD_MISO_GPIO       19                  // GPIO for SPI MISO pin selected for LCD display (not required)
+#define LCD_MOSI_GPIO       23                  // GPIO for SPI MOSI pin selected for LCD display
+#define LCD_SCLK_GPIO       18                  // GPIO for SPI SCLK pin selected for LCD display
+#define LCD_CS_GPIO         5                   // GPIO for SPI CS pin selected for LCD display
+#define LCD_DC_GPIO         22                  // GPIO for DC (data/command) pin selected for LCD display
+#define LCD_RST_GPIO        21                  // GPIO for RESET pin selected for LCD display
+#define LCD_WP_GPIO         -1                  // GPIO for WP signal selected for LCD display (not used)
+#define LCD_HOLD_GPIO       -1                  // GPIO for HD signal selected for LCD display (not used)
 
 spi_device_handle_t spi;
 if (SPI_OK != spi_init(LCD_MISO_GPIO, LCD_MOSI_GPIO, LCD_SCLK_GPIO, LCD_WP_GPIO, LCD_HOLD_GPIO, LCD_CS_GPIO, 
@@ -88,7 +88,8 @@ if (LCD_OK != lcd__Destroy(&lcd))
 ```
  * Drawing example rectangle on the screen
 ```c
-//! Create and initialize the concrete driver instance here (first example)
+
+// Create and initialize the concrete driver instance here (first example)
 
 if (LCD_OK != lcd__DrawRect(lcd, SSD1283A_WIDTH / 2, SSD1283A_HEIGHT / 2, SSD1283A_WIDTH / 4, SSD1283A_HEIGHT / 4, RGB565_RED))
 {
@@ -98,7 +99,7 @@ if (LCD_OK != lcd__DrawRect(lcd, SSD1283A_WIDTH / 2, SSD1283A_HEIGHT / 2, SSD128
  * Drawing example text on the screen
 ```c
 
-//! Create and initialize the concrete driver instance here (first example)
+// Create and initialize the concrete driver instance here (first example)
 
 if (LCD_OK != lcd__DrawText(lcd, 120, 10, "An example text\nwith two lines", -2, 0, &LCD_BASIC_FONT, RGB565_BLACK, RGB565_WHITE))
 {
@@ -130,7 +131,8 @@ const LCD_image_t LCD_IMAGE_SUN_FULL =
 ```
 `main.c`:
 ```c
-//! Create and initialize the concrete driver instance here (first example)
+
+// Create and initialize the concrete driver instance here (first example)
 
 if (LCD_OK != lcd__DrawImage(lcd, 4, 17, &LCD_EXAMPLE_IMAGE))
 {
