@@ -98,10 +98,11 @@ struct LCD_controller_t
  */
 struct LCD_t
 {
-    uint16_t                    width;      /**< Width of the display in pixels */
-    uint16_t                    height;     /**< Height of the display in pixels */
-    LCD_com_handle_t            com;        /**< Handle to low-level communication interface */
-    LCD_controller_handle_t     controller; /**< Handle to LCD controller implementation interface */
+    uint16_t                    width;          /**< Width of the display in pixels */
+    uint16_t                    height;         /**< Height of the display in pixels */
+    bool                        displayState;   /**< State of the display (1 - turned on, 0 - turned off) */
+    LCD_com_handle_t            com;            /**< Handle to low-level communication interface */
+    LCD_controller_handle_t     controller;     /**< Handle to LCD controller implementation interface */
 };
 
 #endif /* LCD_LOW_H */

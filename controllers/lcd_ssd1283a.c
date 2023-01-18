@@ -204,6 +204,7 @@ LCD_handle_t lcd_ssd1283a_spi__Create(spi_device_handle_t spi, const int dc, con
     
     self->base.width        = SSD1283A_WIDTH;
     self->base.height       = SSD1283A_HEIGHT;
+    self->base.displayState = false;
     self->base.com          = lcd_spi__GetCom();
     self->base.controller   = (LCD_controller_handle_t) &lcd_ssd1283a;
     self->spi               = spi;
@@ -270,6 +271,7 @@ static LCD_error_t lcd_ssd1283a__DisplayOn(LCD_handle_t base)
         }
     }
 
+    base->displayState = true;
     return LCD_OK;
 }
 
@@ -288,6 +290,7 @@ static LCD_error_t lcd_ssd1283a__DisplayOff(LCD_handle_t base)
         }
     }
 
+    base->displayState = false;
     return LCD_OK;
 }
 
