@@ -24,8 +24,7 @@
 
 #include "driver/gpio.h"
 
-#define SPI_COMMAND_BYTES     1     /**< Number of bytes for SPI command */
-#define SPI_2BYTES            2     /**< Means the size of two bytes */
+#define SPI_1BYTE_SIZE        8     /**< Number of bits in one byte */
 #define SPI_2BYTES_SIZE       16    /**< Number of bits in two bytes */
 
 #define SPI_COMMAND           0     /**< SPI DC pin value for sending commands */
@@ -108,7 +107,7 @@ spi_error_t spi_send_cmd(spi_device_handle_t spi, const int dcGpio, const uint8_
 {
     spi_transaction_t t;
     memset(&t, 0, sizeof(t));
-    t.length = SPI_COMMAND_BYTES;
+    t.length = SPI_1BYTE_SIZE;
     t.tx_buffer = &cmd;
     spi_user_t user = {
         .dc_gpio = dcGpio,
@@ -122,7 +121,7 @@ spi_error_t spi_send_single_bytes(spi_device_handle_t spi, const int dcGpio, con
 {
     spi_transaction_t t;
     memset(&t, 0, sizeof(t));
-    t.length = dataSize;
+    t.length = dataSize * SPI_1BYTE_SIZE;
     t.tx_buffer = data;
     spi_user_t user = {
         .dc_gpio = dcGpio,
@@ -137,7 +136,7 @@ spi_error_t spi_send_two_bytes(spi_device_handle_t spi, const int dcGpio, uint16
     data = SPI_SWAP_DATA_TX(data, SPI_2BYTES_SIZE);
     spi_transaction_t t;
     memset(&t, 0, sizeof(t));
-    t.length = SPI_2BYTES;
+    t.length = SPI_2BYTES_SIZE;
     t.tx_buffer = &data;
     spi_user_t user = {
         .dc_gpio = dcGpio,
